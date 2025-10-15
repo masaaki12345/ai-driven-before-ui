@@ -1,0 +1,27 @@
+#!/bin/sh
+# Simple commit-msg hook that ensures staged rules/*.mdc are referenced in the commit message
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$REPO_ROOT" ]; then
+  exit 0
+fi
+cd "$REPO_ROOT" || exit 0
+STAGED=$(git diff --cached --name-only)
+RULES_FILES=$(echo "$STAGED" | grep '^rules/.*\.mdc$' || true)
+if [ -z "$RULES_FILES" ]; then
+  exit 0
+fi
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE" || true)
+missing=""
+for f in $RULES_FILES; do
+  base=$(basename "$f")
+  echo "$COMMIT_MSG" | grep -F -- "$base" >/dev/null || missing="$missing $f"
+done
+if [ -n "$missing" ]; then
+  echo "Commit message must reference staged rules files by filename:" >&2
+  for m in $missing; do echo " - $m" >&2; done
+  echo "" >&2
+  echo "Please include the rule file name(s) in your commit message." >&2
+  exit 1
+fi
+exit 0
