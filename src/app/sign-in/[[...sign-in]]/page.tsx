@@ -1,9 +1,9 @@
-import Image from "next/image";
+import { SignIn } from "@clerk/nextjs";
 
-export default function Home() {
+export default function Page() {
   return (
     <div className="flex items-center justify-center h-screen">
-      Hello World
+    <SignIn />
     </div>
   );
 }
